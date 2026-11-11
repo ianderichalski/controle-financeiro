@@ -1,9 +1,13 @@
 import 'dotenv/config';
 import express from 'express';
 import { testarConexao } from './config/db.ts';
+import { rotaNaoEncontrada, tratarErros } from './middlewares/erros.ts';
 
 const app = express();
 app.use(express.json());
+
+app.use(rotaNaoEncontrada);
+app.use(tratarErros);
 
 const porta = Number(process.env.PORT ?? 3000);
 
