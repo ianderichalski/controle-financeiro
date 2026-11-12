@@ -3,6 +3,10 @@ import express from 'express';
 import { testarConexao } from './config/db.ts';
 import { rotaNaoEncontrada, tratarErros } from './middlewares/erros.ts';
 
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET não definido no .env');
+}
+
 const app = express();
 app.use(express.json());
 
