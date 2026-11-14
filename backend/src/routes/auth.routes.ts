@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import rateLimit from 'express-rate-limit';
 import Usuario from '../models/Usuario.ts';
 import { ErroApi } from '../middlewares/erros.ts';
+import { autenticar } from '../middlewares/autenticar.ts';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ const limiteLogin = rateLimit({
   message: { erro: 'Muitas tentativas de login. Tente novamente em alguns minutos.' },
 });
 
+// POST /api/auth/login
 router.post('/login', limiteLogin, async (req, res) => {
   const { email, senha } = req.body ?? {};
 
@@ -41,6 +43,17 @@ router.post('/login', limiteLogin, async (req, res) => {
     token,
     usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email },
   });
+});
+
+// GET /api/auth/me: dados do usuário dono do token
+router.get('/me', autenticar, async (req, res) => {
+  const usuario = await Usuario.buscarPorId(req.usuarioId);
+
+  if (!usuario) {
+    throw new ErroApi(401, 'Usuário não encontrado.');
+  }
+
+  res.json({ id: usuario.id, nome: usuario.nome, email: usuario.email });
 });
 
 export default router;
