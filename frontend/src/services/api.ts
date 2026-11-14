@@ -36,4 +36,11 @@ api.interceptors.response.use(
   },
 );
 
+export function extrairErro(erro: unknown): RespostaErro {
+  if (axios.isAxiosError<RespostaErro>(erro) && erro.response?.data?.erro) {
+    return erro.response.data;
+  }
+  return { erro: 'Não foi possível conectar ao servidor.' };
+}
+
 export default api;
