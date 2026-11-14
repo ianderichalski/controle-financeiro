@@ -1,0 +1,39 @@
+import axios, { AxiosError } from 'axios';
+
+export interface RespostaErro {
+  erro: string;
+  campos?: Record<string, string>;
+}
+
+export const CHAVE_TOKEN = 'token';
+
+const api = axios.create({
+  baseURL: 'http://localhost:3000/api',
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(CHAVE_TOKEN);
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+let aoNaoAutorizado: (() => void) | null = null;
+
+export function registrarLogout(fn: () => void) {
+  aoNaoAutorizado = fn;
+}
+
+api.interceptors.response.use(
+  (resposta) => resposta,
+  (erro: AxiosError<RespostaErro>) => {
+    const ehLogin = erro.config?.url === '/auth/login';
+    if (erro.response?.status === 401 && !ehLogin && aoNaoAutorizado) {
+      aoNaoAutorizado();
+    }
+    return Promise.reject(erro);
+  },
+);
+
+export default api;
