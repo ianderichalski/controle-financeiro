@@ -5,18 +5,43 @@ import rateLimit from 'express-rate-limit';
 import Usuario from '../models/Usuario.ts';
 import { ErroApi } from '../middlewares/erros.ts';
 import { autenticar } from '../middlewares/autenticar.ts';
+import { validarCadastro } from '../middlewares/validarCadastro.ts';
 
 const router = Router();
 
 const limiteLogin = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 10,                
+  limit: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: { erro: 'Muitas tentativas de login. Tente novamente em alguns minutos.' },
 });
 
-// POST /api/auth/login
+// POST /api/auth/cadastro
+router.post('/cadastro', validarCadastro, async (req, res) => {
+  const { nome, email, cpf, senha } = req.body;
+  const senhaHash = await bcrypt.hash(senha, 10);
+
+  try {
+    const usuario = await Usuario.cadastrarComPadroes({
+      nome: nome.trim(),
+      email: email.trim().toLowerCase(),
+      cpf: cpf.replace(/\D/g, ''),       
+      senhaHash,
+    });
+    res.status(201).json({ id: usuario.id, nome: usuario.nome, email: usuario.email });
+  } catch (erro) {
+    const { code, constraint } = erro as { code?: string; constraint?: string };
+    if (code === '23505') {
+      const campo = constraint?.includes('cpf') ? 'cpf' : 'email';
+      throw new ErroApi(409, 'Usuário já cadastrado.', {
+        [campo]: `Já existe um usuário com este ${campo === 'cpf' ? 'CPF' : 'e-mail'}.`,
+      });
+    }
+    throw erro;
+  }
+});
+
 router.post('/login', limiteLogin, async (req, res) => {
   const { email, senha } = req.body ?? {};
 
