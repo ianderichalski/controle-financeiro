@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { extrairErro } from '../services/api';
 
@@ -63,6 +63,9 @@ export default function Login() {
       <button type="submit" disabled={enviando}>
         {enviando ? 'Entrando...' : 'Entrar'}
       </button>
+            <p>
+        Não tem conta? <Link to="/cadastro">Cadastre-se</Link>
+      </p>
     </form>
   );
 }
