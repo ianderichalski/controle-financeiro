@@ -1,4 +1,5 @@
 import pg from 'pg';
+import type { PoolClient } from 'pg';
 
 const { Pool, types } = pg;
 
@@ -12,4 +13,18 @@ pool.on('error', (erro) => {
 
 export async function testarConexao() {
   await pool.query('SELECT 1');
+}
+export async function emTransacao<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const resultado = await fn(client);
+    await client.query('COMMIT');
+    return resultado;
+  } catch (erro) {
+    await client.query('ROLLBACK');
+    throw erro;
+  } finally {
+    client.release(); // devolve a conexão ao pool
+  }
 }
