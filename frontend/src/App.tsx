@@ -3,6 +3,13 @@ import RotaProtegida from './components/RotaProtegida';
 import Layout from './components/Layout';
 import Login from './components/Login';
 import Cadastro from './components/Cadastro';
+import Financeiro from './components/Financeiro';
+import { useAuth } from './contexts/AuthContext';
+
+function PaginaFinanceira() {
+  const { token } = useAuth();
+  return <Financeiro token={token} />;
+}
 
 export default function App() {
   return (
@@ -13,7 +20,7 @@ export default function App() {
 
         <Route element={<RotaProtegida />}>
           <Route element={<Layout />}>
-            <Route path="/" element={<p>Dashboard</p>} />
+            <Route path="/" element={<PaginaFinanceira />} />
           </Route>
         </Route>
 
