@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api, { extrairErro } from '../services/api';
+import { dataBR, mesBR, moeda } from '../services/formatos';
 
 interface LancamentoFatura {
   id: number;
@@ -26,13 +27,6 @@ interface Cartao {
   faturas: Fatura[];
 }
 
-const moeda = (valor: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
-
-const dataBR = (iso: string) => iso.split('-').reverse().join('/');
-
-const mesBR = (referencia: string) => referencia.split('-').reverse().join('/');
-
 export default function Faturas() {
   const [cartoes, setCartoes] = useState<Cartao[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -48,26 +42,26 @@ export default function Faturas() {
     return () => { ativo = false; };
   }, []);
 
-  if (carregando) return <p>Carregando faturas...</p>;
-  if (erro) return <p role="alert">{erro}</p>;
-  if (cartoes.length === 0) return <p>Nenhum cartão de crédito cadastrado.</p>;
+  if (carregando) return <p className="text-muted">Carregando faturas...</p>;
+  if (erro) return <div className="alert alert-danger" role="alert">{erro}</div>;
+  if (cartoes.length === 0) return <p className="text-muted">Nenhum cartão de crédito cadastrado.</p>;
 
   return (
     <section>
-      <h1>Faturas</h1>
+      <h1 className="h3 mb-4">Faturas</h1>
 
       {cartoes.map((cartao) => (
-        <article key={cartao.id}>
-          <h2>{cartao.nome}</h2>
+        <article key={cartao.id} className="card mb-4"><div className="card-body">
+          <h2 className="h5 card-title">{cartao.nome}</h2>
           <p>
             Limite: {moeda(cartao.limite)} · Utilizado: {moeda(cartao.limiteUtilizado)} ·
             Disponível: {moeda(cartao.limiteDisponivel)}
           </p>
 
           {cartao.faturas.map((fatura) => (
-            <div key={fatura.referencia}>
-              <h3>
-                Fatura {mesBR(fatura.referencia)} ({fatura.situacao === 'aberta' ? 'aberta' : 'prevista'})
+            <div key={fatura.referencia} className="border rounded p-3 mb-3">
+              <h3 className="h6">
+                Fatura {mesBR(fatura.referencia)} <span className={`badge ms-2 ${fatura.situacao === 'aberta' ? 'text-bg-primary' : 'text-bg-secondary'}`}>{fatura.situacao === 'aberta' ? 'aberta' : 'prevista'}</span>
               </h3>
               <p>
                 Fecha em {dataBR(fatura.fechamento)} · Vence em {dataBR(fatura.vencimento)} ·
@@ -75,9 +69,9 @@ export default function Faturas() {
               </p>
 
               {fatura.lancamentos.length === 0 ? (
-                <p>Nenhum lançamento nesta fatura.</p>
+                <p className="text-muted">Nenhum lançamento nesta fatura.</p>
               ) : (
-                <table>
+                <table className="table table-striped table-hover align-middle">
                   <thead>
                     <tr>
                       <th>Descrição</th>
@@ -98,7 +92,7 @@ export default function Faturas() {
               )}
             </div>
           ))}
-        </article>
+        </div></article>
       ))}
     </section>
   );

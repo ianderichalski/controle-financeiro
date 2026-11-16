@@ -5,6 +5,45 @@ export interface RespostaErro {
   campos?: Record<string, string>;
 }
 
+export type TipoMovimento = 'entrada' | 'saida';
+
+export interface Categoria {
+  id: number;
+  nome: string;
+  tipo: TipoMovimento;
+}
+
+export interface FonteDestino {
+  id: number;
+  nome: string;
+  tipo: 'renda' | 'conta' | 'cartao_credito';
+  dia_fechamento: number | null;
+  dia_vencimento: number | null;
+  limite: string | null;
+}
+
+export interface Lancamento {
+  id: number;
+  tipo: TipoMovimento;
+  descricao: string;
+  valor: string;
+  data: string;
+  categoria_id: number;
+  fonte_destino_id: number;
+  categoria_nome: string;
+  fonte_destino_nome: string;
+  parcela_atual: number;
+  total_parcelas: number;
+}
+
+export interface Listagem {
+  itens: Lancamento[];
+  pagina: number;
+  totalPaginas: number;
+  totalRegistros: number;
+  totais: { entradas: number; saidas: number; saldo: number };
+}
+
 export const CHAVE_TOKEN = 'token';
 
 const api = axios.create({

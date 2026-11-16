@@ -16,8 +16,8 @@ Os dados financeiros são associados ao usuário autenticado. O sistema também 
 ## Tecnologias
 
 - **Frontend:** React, TypeScript, Vite e React Router
-- **Requisições HTTP:** Axios (autenticação e telas de faturas/saúde financeira) e Fetch (telas financeiras)
-- **Gráficos de saúde financeira:** Recharts
+- **Requisições HTTP:** Axios, por um cliente único (`frontend/src/services/api.ts`) que envia o token e faz logout ao receber 401
+- **Gráficos:** Recharts (relatórios por categoria e por fonte/destino e projeção de saldo)
 - **Backend:** Node.js, TypeScript e Express
 - **Autenticação:** JWT e bcrypt
 - **Banco de dados:** PostgreSQL
@@ -157,16 +157,29 @@ As credenciais acima não devem ser usadas fora da demonstração acadêmica.
 - CRUD de fontes e destinos (renda, conta e cartão de crédito)
 - CRUD de lançamentos de entrada e saída
 - Compras parceladas em cartões, com divisão do valor em centavos e vínculo entre parcelas
-- Filtros por data e tipo e paginação na listagem
+- Filtros por período, tipo, categoria e fonte/destino, paginação e totais (entradas, saídas e saldo)
 - Dashboard com totais e lançamentos recentes
 
 ### Relatórios e projeções
 
-- Relatório por categoria, com distribuição percentual e comparação ao período anterior
-- Previsão de faturas de cartão, datas de fechamento/vencimento, limite utilizado e disponível
+- Relatório por categoria, com distribuição percentual, gráfico e comparação ao período anterior (um mês inteiro é comparado com o mês anterior inteiro; outros períodos, com os mesmos dias imediatamente antes)
+- Relatório por fonte/destino: entradas por fonte, saídas por destino, saldo das contas no período, tabela e gráfico
+- Previsão de faturas de cartão (fatura aberta e as próximas 3), datas de fechamento/vencimento, lançamentos com a parcela, limite utilizado e disponível
 - Indicadores de saúde financeira, gráfico de projeção e dicas educativas
 
-**Situação da integração:** o modelo de relatório por fonte/destino (RF8) existe, mas sua rota e interface não fazem parte da versão integrada descrita aqui. Esta documentação deve ser atualizada quando a funcionalidade for concluída.
+### Decisões de implementação
+
+- **Parcelas:** todas as parcelas de uma compra guardam a data da compra; a fatura de cada uma é calculada com `calcularFatura(data, cartao, parcela_atual)`. Por isso, na listagem de lançamentos e nos relatórios por período, a compra aparece inteira no mês em que foi feita; a distribuição no tempo aparece nas faturas.
+- **Funções utilitárias puras** (`cpfValido` em `models/cpf.ts` e `calcularFatura` em `models/fatura.ts`) ficam em `backend/src/models/`. As validações de entrada reutilizadas pelas rotas ficam em `backend/src/config/validacao.ts`.
+- **Saúde financeira:** os indicadores usam os últimos 3 meses, incluindo o mês atual (ainda incompleto). A projeção usa a média mensal desses 3 meses (sempre dividida por 3) somada às parcelas já conhecidas, em visão de caixa: compras parceladas saem do saldo só quando cada parcela vence.
+- **Regras das dicas** (constantes em `backend/src/models/saudeFinanceira.ts`):
+
+| Regra | Limite | Dica |
+| --- | --- | --- |
+| Taxa de poupança dos últimos 3 meses | abaixo de 10% (`META_POUPANCA`) | alerta para guardar ao menos 10% |
+| Comprometimento da renda com as próximas faturas | acima de 30% (`LIMITE_CARTOES`) | alerta de comprometimento |
+| Parcelas a vencer | existe ao menos uma | informa o total e até quando vão |
+| Saldo projetado | fica negativo em algum mês | alerta com o mês |
 
 ## Endpoints principais
 
@@ -178,13 +191,17 @@ A URL-base da API é `http://localhost:3000`.
 | `POST` | `/api/auth/login` | Autenticar |
 | `GET` | `/api/auth/me` | Consultar usuário autenticado |
 | `GET`, `POST` | `/api/categorias` | Listar e criar categorias |
+| `GET`, `PUT`, `DELETE` | `/api/categorias/:id` | Detalhar, editar e excluir categoria |
 | `GET`, `POST` | `/api/fontes-destinos` | Listar e criar fontes/destinos |
-| `GET`, `POST` | `/api/lancamentos` | Listar e criar lançamentos |
-| `GET` | `/api/relatorios/categorias` | Relatório por categoria |
+| `GET`, `PUT`, `DELETE` | `/api/fontes-destinos/:id` | Detalhar, editar e excluir fonte/destino |
+| `GET`, `POST` | `/api/lancamentos` | Listar (`?inicio=&fim=&tipo=&categoriaId=&fonteDestinoId=&pagina=`) e criar lançamentos (com parcelas) |
+| `GET`, `PUT`, `DELETE` | `/api/lancamentos/:id` | Detalhar, editar e excluir (`?todasParcelas=true`) |
+| `GET` | `/api/relatorios/categorias` | Relatório por categoria (`?inicio=&fim=`) |
+| `GET` | `/api/relatorios/fontes-destinos` | Relatório por fonte/destino (`?inicio=&fim=`) |
 | `GET` | `/api/relatorios/faturas` | Previsão de faturas (`?meses=3`) |
 | `GET` | `/api/saude-financeira` | Indicadores, projeção e dicas |
 
-As operações financeiras exigem o cabeçalho `Authorization: Bearer <token>`. As rotas de edição/exclusão de recursos utilizam seus identificadores.
+Todas as rotas, exceto cadastro e login, exigem o cabeçalho `Authorization: Bearer <token>`. Erros seguem o formato único `{ "erro": "...", "campos": { ... } }`.
 
 ## Verificações
 
@@ -195,10 +212,11 @@ cd backend
 npm run typecheck
 ```
 
-Para gerar o frontend de produção:
+Para conferir o lint e gerar o frontend de produção:
 
 ```bash
 cd frontend
+npm run lint
 npm run build
 ```
 

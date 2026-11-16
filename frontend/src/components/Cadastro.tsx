@@ -67,54 +67,55 @@ export default function Cadastro() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <h1>Criar conta</h1>
+    <div className="container py-5" style={{ maxWidth: 440 }}>
+    <form onSubmit={handleSubmit} noValidate className="card card-body shadow-sm">
+      <h1 className="h3 mb-4">Criar conta</h1>
 
-      <div>
-        <label htmlFor="nome">Nome</label>
-        <input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} />
-        {erros.nome && <small>{erros.nome}</small>}
+      <div className="mb-3">
+        <label htmlFor="nome" className="form-label">Nome</label>
+        <input id="nome" className={`form-control${erros.nome ? ' is-invalid' : ''}`} value={nome} onChange={(e) => setNome(e.target.value)} />
+        {erros.nome && <div className="invalid-feedback">{erros.nome}</div>}
       </div>
 
-      <div>
-        <label htmlFor="email">E-mail</label>
-        <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        {erros.email && <small>{erros.email}</small>}
+      <div className="mb-3">
+        <label htmlFor="email" className="form-label">E-mail</label>
+        <input id="email" className={`form-control${erros.email ? ' is-invalid' : ''}`} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        {erros.email && <div className="invalid-feedback">{erros.email}</div>}
       </div>
 
-      <div>
-        <label htmlFor="cpf">CPF</label>
-        <input
-          id="cpf"
+      <div className="mb-3">
+        <label htmlFor="cpf" className="form-label">CPF</label>
+        <input id="cpf" className={`form-control${erros.cpf ? ' is-invalid' : ''}`}
           inputMode="numeric"
           placeholder="000.000.000-00"
           value={cpf}
           onChange={(e) => setCpf(mascararCpf(e.target.value))}
         />
-        {erros.cpf && <small>{erros.cpf}</small>}
+        {erros.cpf && <div className="invalid-feedback">{erros.cpf}</div>}
       </div>
 
-      <div>
-        <label htmlFor="senha">Senha</label>
-        <input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
-        {erros.senha && <small>{erros.senha}</small>}
+      <div className="mb-3">
+        <label htmlFor="senha" className="form-label">Senha</label>
+        <input id="senha" className={`form-control${erros.senha ? ' is-invalid' : ''}`} type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
+        {erros.senha && <div className="invalid-feedback">{erros.senha}</div>}
       </div>
 
-      <div>
-        <label htmlFor="confirmacao">Confirmação de senha</label>
-        <input id="confirmacao" type="password" value={confirmacao} onChange={(e) => setConfirmacao(e.target.value)} />
-        {erros.confirmacao && <small>{erros.confirmacao}</small>}
+      <div className="mb-3">
+        <label htmlFor="confirmacao" className="form-label">Confirmação de senha</label>
+        <input id="confirmacao" className={`form-control${erros.confirmacao ? ' is-invalid' : ''}`} type="password" value={confirmacao} onChange={(e) => setConfirmacao(e.target.value)} />
+        {erros.confirmacao && <div className="invalid-feedback">{erros.confirmacao}</div>}
       </div>
 
-      {erroGeral && <p role="alert">{erroGeral}</p>}
+      {erroGeral && <div className="alert alert-danger" role="alert">{erroGeral}</div>}
 
-      <button type="submit" disabled={enviando}>
+      <button type="submit" className="btn btn-primary w-100" disabled={enviando}>
         {enviando ? 'Cadastrando...' : 'Cadastrar'}
       </button>
 
-      <p>
+      <p className="mt-3 mb-0 text-center">
         Já tem conta? <Link to="/login">Entrar</Link>
       </p>
     </form>
+    </div>
   );
 }

@@ -1,4 +1,3 @@
-
 BEGIN;
 
 -- Habilita funções para gerar hashes bcrypt.
@@ -30,8 +29,11 @@ CROSS JOIN (
         ('Outros', 'entrada'),
         ('Alimentação', 'saida'),
         ('Moradia', 'saida'),
+        ('Saúde', 'saida'),
+        ('Mobilidade', 'saida'),
         ('Lazer', 'saida'),
-        ('Saúde', 'saida')
+        ('Educação', 'saida'),
+        ('Outros', 'saida')
 ) AS c(nome, tipo)
 WHERE u.email IN (
     'demo.a@example.com',

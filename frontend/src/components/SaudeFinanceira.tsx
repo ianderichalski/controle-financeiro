@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import api, { extrairErro } from '../services/api';
+import { mesBR, moeda, pct } from '../services/formatos';
 
 interface Resposta {
   indicadores: {
@@ -16,11 +17,8 @@ interface Resposta {
   dicas: { nivel: 'alerta' | 'ok' | 'info'; texto: string }[];
 }
 
-const moeda = (valor: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
-const mesBR = (referencia: string) => referencia.split('-').reverse().join('/');
-const pct = (valor: number | null) => (valor === null ? '—' : `${valor.toLocaleString('pt-BR')}%`);
 const rotulo = { alerta: 'Atenção', ok: 'Tudo certo', info: 'Informação' };
+const cor = { alerta: 'text-bg-danger', ok: 'text-bg-success', info: 'text-bg-info' };
 
 export default function SaudeFinanceira() {
   const [dados, setDados] = useState<Resposta | null>(null);
@@ -37,8 +35,8 @@ export default function SaudeFinanceira() {
     return () => { ativo = false; };
   }, []);
 
-  if (carregando) return <p>Carregando saúde financeira...</p>;
-  if (erro) return <p role="alert">{erro}</p>;
+  if (carregando) return <p className="text-muted">Carregando saúde financeira...</p>;
+  if (erro) return <div className="alert alert-danger" role="alert">{erro}</div>;
   if (!dados) return null;
 
   const { indicadores, projecao, dicas } = dados;
@@ -50,15 +48,15 @@ export default function SaudeFinanceira() {
 
   return (
     <section>
-      <h1>Saúde financeira</h1>
+      <h1 className="h3 mb-4">Saúde financeira</h1>
 
-      <p role="note">
+      <div className="alert alert-warning" role="note">
         <strong>Aviso:</strong> as informações desta página são educativas e não constituem
         recomendação financeira profissional.
-      </p>
+      </div>
 
-      <h2>Indicadores</h2>
-      <table>
+      <h2 className="h5 mt-4 mb-3">Indicadores</h2>
+      <table className="table table-striped table-hover align-middle">
         <thead>
           <tr>
             <th>Indicador</th>
@@ -87,7 +85,7 @@ export default function SaudeFinanceira() {
         </tbody>
       </table>
 
-      <h3>Taxa de poupança por mês</h3>
+      <h3 className="h6 mt-3">Taxa de poupança por mês</h3>
       <ul>
         {indicadores.taxaPoupanca.porMes.map((m) => (
           <li key={m.mes}>
@@ -96,8 +94,8 @@ export default function SaudeFinanceira() {
         ))}
       </ul>
 
-      <h2>Projeção de saldo</h2>
-      {projecao.ficaNegativo && <p role="alert">Atenção: o saldo projetado fica negativo.</p>}
+      <h2 className="h5 mt-4 mb-3">Projeção de saldo</h2>
+      {projecao.ficaNegativo && <div className="alert alert-danger" role="alert">Atenção: o saldo projetado fica negativo.</div>}
       <div style={{ width: '100%', height: 300 }}>
         <ResponsiveContainer>
           <LineChart data={pontos}>
@@ -111,11 +109,11 @@ export default function SaudeFinanceira() {
         </ResponsiveContainer>
       </div>
 
-      <h2>Dicas</h2>
-      <ul>
+      <h2 className="h5 mt-4 mb-3">Dicas</h2>
+      <ul className="list-group">
         {dicas.map((d) => (
-          <li key={d.texto}>
-            <strong>{rotulo[d.nivel]}:</strong> {d.texto}
+          <li key={d.texto} className="list-group-item">
+            <span className={`badge me-2 ${cor[d.nivel]}`}>{rotulo[d.nivel]}</span>{d.texto}
           </li>
         ))}
       </ul>
