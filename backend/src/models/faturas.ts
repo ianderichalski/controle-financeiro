@@ -61,6 +61,7 @@ export async function previsaoFaturas(usuarioId: number, meses: number, hoje = n
             descricao: p.total_parcelas > 1 ? `${p.descricao} — ${p.parcela_atual}/${p.total_parcelas}` : p.descricao,
             dataCompra: p.data,
             valor: Number(p.valor),
+            totalParcelas: p.total_parcelas,
           })),
         };
       });
