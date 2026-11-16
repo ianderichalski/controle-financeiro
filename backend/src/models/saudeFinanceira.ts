@@ -143,3 +143,78 @@ export async function projecaoSaldo(usuarioId: number, meses = 3, hoje = new Dat
     ficaNegativo: projecao.some((m) => m.saldo < 0),
   };
 }
+
+export const META_POUPANCA = 10;
+export const LIMITE_CARTOES = 30;
+
+interface Dica {
+  nivel: 'alerta' | 'ok' | 'info';
+  texto: string;
+}
+
+const moeda = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+const mesBR = (referencia: string) => referencia.split('-').reverse().join('/');
+const pct = (v: number) => `${v.toLocaleString('pt-BR')}%`;
+
+export function gerarDicas(dados: {
+  taxaPoupanca: number | null;
+  comprometimentoRenda: number | null;
+  parcelasFuturas: { total: number; ate: string | null };
+  projecao: { mes: string; saldo: number }[];
+}): Dica[] {
+  const dicas: Dica[] = [];
+
+  if (dados.taxaPoupanca === null) {
+    dicas.push({ nivel: 'info', texto: 'Não há entradas nos últimos 3 meses, então não dá para calcular quanto você guardou.' });
+  } else if (dados.taxaPoupanca < META_POUPANCA) {
+    dicas.push({ nivel: 'alerta', texto: `Você guardou ${pct(dados.taxaPoupanca)} da sua renda nos últimos 3 meses. Uma meta comum é guardar pelo menos ${META_POUPANCA}%.` });
+  } else {
+    dicas.push({ nivel: 'ok', texto: `Você guardou ${pct(dados.taxaPoupanca)} da sua renda nos últimos 3 meses, acima da meta comum de ${META_POUPANCA}%.` });
+  }
+
+  if (dados.comprometimentoRenda !== null && dados.comprometimentoRenda > LIMITE_CARTOES) {
+    dicas.push({ nivel: 'alerta', texto: `Suas próximas faturas comprometem ${pct(dados.comprometimentoRenda)} da sua renda mensal (referência: até ${LIMITE_CARTOES}%).` });
+  } else if (dados.comprometimentoRenda !== null) {
+    dicas.push({ nivel: 'ok', texto: `Suas próximas faturas comprometem ${pct(dados.comprometimentoRenda)} da sua renda mensal, dentro da referência de ${LIMITE_CARTOES}%.` });
+  }
+
+  if (dados.parcelasFuturas.total > 0 && dados.parcelasFuturas.ate) {
+    dicas.push({ nivel: 'info', texto: `Você tem ${moeda(dados.parcelasFuturas.total)} em parcelas até ${mesBR(dados.parcelasFuturas.ate)}.` });
+  }
+
+  const negativo = dados.projecao.find((m) => m.saldo < 0);
+  if (negativo) {
+    dicas.push({ nivel: 'alerta', texto: `Mantido o ritmo atual, seu saldo fica negativo em ${mesBR(negativo.mes)}.` });
+  } else if (dados.projecao.length > 0) {
+    dicas.push({ nivel: 'ok', texto: `Mantido o ritmo atual, seu saldo continua positivo nos próximos ${dados.projecao.length} meses.` });
+  }
+
+  return dicas;
+}
+
+export async function saudeFinanceira(usuarioId: number, hoje = new Date().toLocaleDateString('en-CA')) {
+  const meses = await resumoMensal(usuarioId, 3, hoje);
+  const totalEntradas = meses.reduce((s, m) => s + m.entradas, 0);
+  const totalSaidas = meses.reduce((s, m) => s + m.saidas, 0);
+  const rendaMedia = totalEntradas / meses.length;
+
+  const taxaPoupanca = totalEntradas > 0 ? Math.round(((totalEntradas - totalSaidas) / totalEntradas) * 1000) / 10 : null;
+
+  const cartoes = await indicadoresCartoes(usuarioId, rendaMedia, hoje);
+  const projecao = await projecaoSaldo(usuarioId, 3, hoje);
+
+  return {
+    indicadores: {
+      taxaPoupanca: { periodo: taxaPoupanca, porMes: meses },
+      comprometimentoCartoes: { percentual: cartoes.comprometimentoRenda, totalProximasFaturas: cartoes.totalProximasFaturas, rendaMedia: Math.round(rendaMedia * 100) / 100 },
+      parcelasFuturas: cartoes.parcelasFuturas,
+    },
+    projecao,
+    dicas: gerarDicas({
+      taxaPoupanca,
+      comprometimentoRenda: cartoes.comprometimentoRenda,
+      parcelasFuturas: cartoes.parcelasFuturas,
+      projecao: projecao.projecao,
+    }),
+  };
+}
