@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import Login from './components/Login';
 import Cadastro from './components/Cadastro';
 import Faturas from './components/Faturas';
+import SaudeFinanceira from './components/SaudeFinanceira';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<p>Dashboard</p>} />
             <Route path="/faturas" element={<Faturas />} />
+            <Route path="/saude-financeira" element={<SaudeFinanceira />} />
           </Route>
         </Route>
 
