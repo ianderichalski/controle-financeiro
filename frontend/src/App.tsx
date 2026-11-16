@@ -3,16 +3,14 @@ import RotaProtegida from './components/RotaProtegida';
 import Layout from './components/Layout';
 import Login from './components/Login';
 import Cadastro from './components/Cadastro';
-import Financeiro from './components/Financeiro';
-import { useAuth } from './contexts/AuthContext';
+import Dashboard from './components/Dashboard';
+import Lancamentos from './components/Lancamentos';
+import Categorias from './components/Categorias';
+import FontesDestinos from './components/FontesDestinos';
+import RelatorioCategorias from './components/RelatorioCategorias';
+import RelatorioFontesDestinos from './components/RelatorioFontesDestinos';
 import Faturas from './components/Faturas';
 import SaudeFinanceira from './components/SaudeFinanceira';
-import RelatorioFontesDestinos from './components/RelatorioFontesDestinos';
-
-function PaginaFinanceira() {
-  const { token } = useAuth();
-  return <Financeiro token={token} />;
-}
 
 export default function App() {
   return (
@@ -23,7 +21,11 @@ export default function App() {
 
         <Route element={<RotaProtegida />}>
           <Route element={<Layout />}>
-            <Route path="/" element={<PaginaFinanceira />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/lancamentos" element={<Lancamentos />} />
+            <Route path="/categorias" element={<Categorias />} />
+            <Route path="/fontes-destinos" element={<FontesDestinos />} />
+            <Route path="/relatorios/categorias" element={<RelatorioCategorias />} />
             <Route path="/relatorios/fontes-destinos" element={<RelatorioFontesDestinos />} />
             <Route path="/faturas" element={<Faturas />} />
             <Route path="/saude-financeira" element={<SaudeFinanceira />} />
