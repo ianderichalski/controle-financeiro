@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import api, { extrairErro } from '../services/api';
+import { dataBR, mesAtual, moeda } from '../services/formatos';
 
 interface Item {
   id: number;
@@ -27,22 +28,11 @@ interface Relatorio {
   contas: Conta[];
 }
 
-const moeda = (valor: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
-const dataBR = (iso: string) => iso.split('-').reverse().join('/');
 const nomeTipo = { renda: 'Renda', conta: 'Conta', cartao_credito: 'Cartão de crédito' };
 
-function mesAtual() {
-  const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-  const ultimo = new Date(ano, hoje.getMonth() + 1, 0).getDate();
-  return { inicio: `${ano}-${mes}-01`, fim: `${ano}-${mes}-${String(ultimo).padStart(2, '0')}` };
-}
-
 export default function RelatorioFontesDestinos() {
-  const [filtro, setFiltro] = useState(mesAtual);
-  const [inicio, setInicio] = useState(filtro.inicio);
+  const [filtro, setFiltro] = useState(mesAtual);          // período consultado
+  const [inicio, setInicio] = useState(filtro.inicio);     // campos do formulário
   const [fim, setFim] = useState(filtro.fim);
   const [dados, setDados] = useState<Relatorio | null>(null);
   const [erros, setErros] = useState<Record<string, string>>({});
@@ -83,22 +73,26 @@ export default function RelatorioFontesDestinos() {
 
   return (
     <section>
-      <h1>Relatório por fonte/destino</h1>
+      <h1 className="h3 mb-4">Relatório por fonte/destino</h1>
 
-      <form onSubmit={handleSubmit} noValidate>
-        <label htmlFor="inicio">Início</label>
-        <input id="inicio" type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />
-        {erros.inicio && <small>{erros.inicio}</small>}
-
-        <label htmlFor="fim">Fim</label>
-        <input id="fim" type="date" value={fim} onChange={(e) => setFim(e.target.value)} />
-        {erros.fim && <small>{erros.fim}</small>}
-
-        <button type="submit" disabled={carregando}>Consultar</button>
+      <form onSubmit={handleSubmit} noValidate className="row g-2 align-items-end mb-4">
+        <div className="col-auto">
+          <label htmlFor="inicio" className="form-label">Início</label>
+          <input id="inicio" className={`form-control${erros.inicio ? ' is-invalid' : ''}`} type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />
+          {erros.inicio && <div className="invalid-feedback">{erros.inicio}</div>}
+        </div>
+        <div className="col-auto">
+          <label htmlFor="fim" className="form-label">Fim</label>
+          <input id="fim" className={`form-control${erros.fim ? ' is-invalid' : ''}`} type="date" value={fim} onChange={(e) => setFim(e.target.value)} />
+          {erros.fim && <div className="invalid-feedback">{erros.fim}</div>}
+        </div>
+        <div className="col-auto">
+          <button type="submit" className="btn btn-primary" disabled={carregando}>Consultar</button>
+        </div>
       </form>
 
-      {carregando && <p>Carregando relatório...</p>}
-      {!carregando && erro && <p role="alert">{erro}</p>}
+      {carregando && <p className="text-muted">Carregando relatório...</p>}
+      {!carregando && erro && <div className="alert alert-danger" role="alert">{erro}</div>}
 
       {!carregando && !erro && dados && (
         <>
@@ -108,7 +102,7 @@ export default function RelatorioFontesDestinos() {
           </p>
 
           {grafico.length === 0 ? (
-            <p>Nenhum lançamento no período.</p>
+            <p className="text-muted">Nenhum lançamento no período.</p>
           ) : (
             <>
               <div style={{ width: '100%', height: 300 }}>
@@ -125,9 +119,9 @@ export default function RelatorioFontesDestinos() {
                 </ResponsiveContainer>
               </div>
 
-              <h2>Entradas por fonte</h2>
-              {dados.entradas.length === 0 ? <p>Nenhuma entrada no período.</p> : (
-                <table>
+              <h2 className="h5 mt-4 mb-3">Entradas por fonte</h2>
+              {dados.entradas.length === 0 ? <p className="text-muted">Nenhuma entrada no período.</p> : (
+                <table className="table table-striped table-hover align-middle">
                   <thead><tr><th>Fonte</th><th>Tipo</th><th>Total</th></tr></thead>
                   <tbody>
                     {dados.entradas.map((i) => (
@@ -137,9 +131,9 @@ export default function RelatorioFontesDestinos() {
                 </table>
               )}
 
-              <h2>Saídas por destino</h2>
-              {dados.saidas.length === 0 ? <p>Nenhuma saída no período.</p> : (
-                <table>
+              <h2 className="h5 mt-4 mb-3">Saídas por destino</h2>
+              {dados.saidas.length === 0 ? <p className="text-muted">Nenhuma saída no período.</p> : (
+                <table className="table table-striped table-hover align-middle">
                   <thead><tr><th>Destino</th><th>Tipo</th><th>Total</th></tr></thead>
                   <tbody>
                     {dados.saidas.map((i) => (
@@ -151,9 +145,9 @@ export default function RelatorioFontesDestinos() {
             </>
           )}
 
-          <h2>Saldo das contas no período</h2>
-          {dados.contas.length === 0 ? <p>Nenhuma conta cadastrada.</p> : (
-            <table>
+          <h2 className="h5 mt-4 mb-3">Saldo das contas no período</h2>
+          {dados.contas.length === 0 ? <p className="text-muted">Nenhuma conta cadastrada.</p> : (
+            <table className="table table-striped table-hover align-middle">
               <thead><tr><th>Conta</th><th>Entradas</th><th>Saídas</th><th>Saldo</th></tr></thead>
               <tbody>
                 {dados.contas.map((c) => (

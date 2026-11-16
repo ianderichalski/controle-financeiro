@@ -43,29 +43,31 @@ export default function Login() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <h1>Entrar</h1>
+    <div className="container py-5" style={{ maxWidth: 440 }}>
+    <form onSubmit={handleSubmit} noValidate className="card card-body shadow-sm">
+      <h1 className="h3 mb-4">Entrar</h1>
 
-      <div>
-        <label htmlFor="email">E-mail</label>
-        <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        {erros.email && <small>{erros.email}</small>}
+      <div className="mb-3">
+        <label htmlFor="email" className="form-label">E-mail</label>
+        <input id="email" className={`form-control${erros.email ? ' is-invalid' : ''}`} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        {erros.email && <div className="invalid-feedback">{erros.email}</div>}
       </div>
 
-      <div>
-        <label htmlFor="senha">Senha</label>
-        <input id="senha" type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
-        {erros.senha && <small>{erros.senha}</small>}
+      <div className="mb-3">
+        <label htmlFor="senha" className="form-label">Senha</label>
+        <input id="senha" className={`form-control${erros.senha ? ' is-invalid' : ''}`} type="password" value={senha} onChange={(e) => setSenha(e.target.value)} />
+        {erros.senha && <div className="invalid-feedback">{erros.senha}</div>}
       </div>
 
-      {erroGeral && <p role="alert">{erroGeral}</p>}
+      {erroGeral && <div className="alert alert-danger" role="alert">{erroGeral}</div>}
 
-      <button type="submit" disabled={enviando}>
+      <button type="submit" className="btn btn-primary w-100" disabled={enviando}>
         {enviando ? 'Entrando...' : 'Entrar'}
       </button>
-            <p>
+            <p className="mt-3 mb-0 text-center">
         Não tem conta? <Link to="/cadastro">Cadastre-se</Link>
       </p>
     </form>
+    </div>
   );
 }
