@@ -1,5 +1,6 @@
 import type { Pool, PoolClient } from 'pg';
-import { pool } from '../config/db.ts';
+import { pool, emTransacao } from '../config/db.ts';
+import { criarPadroes } from './padroes.ts';
 
 export interface UsuarioPublico {
   id: number;
@@ -31,6 +32,14 @@ class Usuario {
       [dados.nome, dados.email, dados.cpf, dados.senhaHash],
     );
     return rows[0];
+  }
+
+  async cadastrarComPadroes(dados: NovoUsuario): Promise<UsuarioPublico> {
+    return emTransacao(async (client) => {
+      const usuario = await this.criar(dados, client);
+      await criarPadroes(client, usuario.id);
+      return usuario;
+    });
   }
 
   async buscarPorEmail(email: string): Promise<UsuarioComSenha | undefined> {
