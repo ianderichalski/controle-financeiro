@@ -5,6 +5,8 @@ import { testarConexao } from './config/db.ts';
 import { rotaNaoEncontrada, tratarErros } from './middlewares/erros.ts';
 import authRoutes from './routes/auth.routes.ts';
 import { registrarFinanceiro } from './routes/registrarFinanceiro.ts';
+import faturasRoutes from './routes/faturas.routes.ts';
+import saudeFinanceiraRoutes from './routes/saudeFinanceira.routes.ts';
 
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET não definido no .env');
@@ -17,6 +19,8 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 registrarFinanceiro(app);
+app.use('/api/relatorios', faturasRoutes);
+app.use('/api/saude-financeira', saudeFinanceiraRoutes);
 
 app.use(rotaNaoEncontrada);
 app.use(tratarErros);

@@ -5,6 +5,8 @@ import Login from './components/Login';
 import Cadastro from './components/Cadastro';
 import Financeiro from './components/Financeiro';
 import { useAuth } from './contexts/AuthContext';
+import Faturas from './components/Faturas';
+import SaudeFinanceira from './components/SaudeFinanceira';
 
 function PaginaFinanceira() {
   const { token } = useAuth();
@@ -21,6 +23,8 @@ export default function App() {
         <Route element={<RotaProtegida />}>
           <Route element={<Layout />}>
             <Route path="/" element={<PaginaFinanceira />} />
+            <Route path="/faturas" element={<Faturas />} />
+            <Route path="/saude-financeira" element={<SaudeFinanceira />} />
           </Route>
         </Route>
 
