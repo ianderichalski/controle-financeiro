@@ -58,6 +58,18 @@ export function intervalo(inicio: unknown, fim: unknown): { inicio: string; fim:
 export function mesAnteriorMesmaDuracao(inicio: string, fim: string) {
   const [ai, mi, di] = inicio.split('-').map(Number);
   const [af, mf, df] = fim.split('-').map(Number);
+  const ultimoDia = (ano: number, mes: number) => new Date(Date.UTC(ano, mes, 0)).getUTCDate(); // mes: 1 a 12
+  const doisDigitos = (n: number) => String(n).padStart(2, '0');
+
+  if (di === 1 && ai === af && mi === mf && df === ultimoDia(af, mf)) {
+    const ano = mi === 1 ? ai - 1 : ai;
+    const mes = mi === 1 ? 12 : mi - 1;
+    return {
+      inicio: `${ano}-${doisDigitos(mes)}-01`,
+      fim: `${ano}-${doisDigitos(mes)}-${doisDigitos(ultimoDia(ano, mes))}`,
+    };
+  }
+
   const inicioMs = Date.UTC(ai, mi - 1, di);
   const fimMs = Date.UTC(af, mf - 1, df);
   const dias = Math.round((fimMs - inicioMs) / 86400000) + 1;
